@@ -1,0 +1,41 @@
+import { CohereClient } from 'cohere-ai';
+
+// Initialize the Cohere client
+const cohereClient = new CohereClient({ 
+  token: process.env.COHERE_API_KEY || ''
+});
+
+export async function analyzeCode(code: string) {
+  try {
+    const response = await cohereClient.generate({
+      model: 'command',
+      prompt: `Analyze the following Python code and provide detailed feedback including:
+1. Code quality assessment
+2. Potential bugs or issues
+3. Performance considerations
+4. Best practice suggestions
+5. Improved version of the code if applicable
+
+Code to analyze:
+${code}
+
+Provide the analysis in JSON format with the following structure:
+{
+  "errors": [{"type": string, "message": string, "line": number}],
+  "suggestions": [{"type": string, "message": string, "code": string}]
+}`,
+      maxTokens: 500,
+      temperature: 0.3,
+      format: 'json',
+    });
+
+    if (!response.generations?.[0]?.text) {
+      throw new Error('No response from Cohere API');
+    }
+
+    return JSON.parse(response.generations[0].text);
+  } catch (error) {
+    console.error('Error analyzing code:', error);
+    throw new Error('Failed to analyze code using Cohere');
+  }
+}
