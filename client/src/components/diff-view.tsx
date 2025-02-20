@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { createTwoFilesPatch } from "diff";
-import { html } from "diff2html/lib/ui/js/diff2html-ui-base.js";
-import { parse } from "diff2html";
+import * as Diff2Html from "diff2html";
+import "diff2html/bundles/css/diff2html.min.css";
 
 interface DiffViewProps {
   original: string;
@@ -14,8 +14,8 @@ export function DiffView({ original, improved }: DiffViewProps) {
   }
 
   const diff = createTwoFilesPatch("original.py", "improved.py", original, improved);
-  const diffJson = parse(diff);
-  const diffHtml = html(diffJson, {
+  const diffJson = Diff2Html.parse(diff);
+  const diffHtml = Diff2Html.html(diffJson, {
     drawFileList: false,
     matching: "lines",
     outputFormat: "side-by-side",
