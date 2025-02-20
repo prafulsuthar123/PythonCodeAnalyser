@@ -6,16 +6,18 @@ import { DiffView } from "@/components/diff-view";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { AnalysisResult } from "@shared/schema";
+import type { AnalysisResult, FileInput } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2 } from "lucide-react";
 
 export default function Home() {
-  const [code, setCode] = useState("");
+  const [files, setFiles] = useState<FileInput[]>([{ name: 'main.py', content: '' }]);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
 
   const analyzeMutation = useMutation({
-    mutationFn: async (code: string) => {
-      const res = await apiRequest("POST", "/api/analyze", { code });
+    mutationFn: async (files: FileInput[]) => {
+      const res = await apiRequest("POST", "/api/analyze", { files });
       return res.json();
     },
     onSuccess: (data) => {
@@ -34,19 +36,71 @@ export default function Home() {
     }
   });
 
+  const addFile = () => {
+    const newFileName = `file${files.length + 1}.py`;
+    setFiles([...files, { name: newFileName, content: '' }]);
+  };
+
+  const removeFile = (index: number) => {
+    if (files.length > 1) {
+      setFiles(files.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateFile = (index: number, content: string) => {
+    const newFiles = [...files];
+    newFiles[index] = { ...newFiles[index], content };
+    setFiles(newFiles);
+  };
+
+  const updateFileName = (index: number, name: string) => {
+    const newFiles = [...files];
+    newFiles[index] = { ...newFiles[index], name };
+    setFiles(newFiles);
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <h1 className="text-4xl font-bold text-foreground">Python Code Analyzer</h1>
-        
+
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Files</h2>
+          <Button onClick={addFile} variant="outline">
+            <Plus className="mr-2 h-4 w-4" />
+            Add File
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-4">
-            <CodeEditor
-              value={code}
-              onChange={setCode}
-              onAnalyze={() => analyzeMutation.mutate(code)}
-            />
-          </Card>
+          <div className="space-y-4">
+            {files.map((file, index) => (
+              <Card className="p-4" key={index}>
+                <div className="flex justify-between items-center mb-4">
+                  <input
+                    type="text"
+                    value={file.name}
+                    onChange={(e) => updateFileName(index, e.target.value)}
+                    className="border rounded px-2 py-1"
+                  />
+                  {files.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <CodeEditor
+                  value={file.content}
+                  onChange={(content) => updateFile(index, content)}
+                  onAnalyze={() => analyzeMutation.mutate(files)}
+                />
+              </Card>
+            ))}
+          </div>
 
           <Card className="p-4">
             <AnalysisPanel analysis={analysis} />
@@ -54,7 +108,7 @@ export default function Home() {
 
           {analysis?.suggestions.length > 0 && (
             <Card className="p-4 lg:col-span-2">
-              <DiffView original={code} improved={analysis.suggestions[0].code || code} />
+              <DiffView files={files} analysis={analysis} />
             </Card>
           )}
         </div>

@@ -2,6 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertCircle, Lightbulb } from "lucide-react";
 import type { AnalysisResult } from "@shared/schema";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface AnalysisPanelProps {
   analysis: AnalysisResult | null;
@@ -19,36 +20,67 @@ export function AnalysisPanel({ analysis }: AnalysisPanelProps) {
   const errors = analysis.errors || [];
   const suggestions = analysis.suggestions || [];
 
+  // Group by file
+  const fileErrors = errors.reduce((acc, error) => {
+    const file = error.file || 'General';
+    if (!acc[file]) acc[file] = [];
+    acc[file].push(error);
+    return acc;
+  }, {} as Record<string, typeof errors>);
+
+  const fileSuggestions = suggestions.reduce((acc, suggestion) => {
+    const file = suggestion.file || 'General';
+    if (!acc[file]) acc[file] = [];
+    acc[file].push(suggestion);
+    return acc;
+  }, {} as Record<string, typeof suggestions>);
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Analysis Results</h2>
 
       <ScrollArea className="h-[400px] pr-4">
-        {errors.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="font-medium">Errors</h3>
-            {errors.map((error, i) => (
-              <Alert variant="destructive" key={i}>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>{error.type}</AlertTitle>
-                <AlertDescription>{error.message}</AlertDescription>
-              </Alert>
-            ))}
-          </div>
-        )}
+        <Accordion type="single" collapsible>
+          {Object.entries(fileErrors).map(([file, fileErrors]) => (
+            <AccordionItem value={`errors-${file}`} key={`errors-${file}`}>
+              <AccordionTrigger>
+                Errors in {file}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2">
+                  {fileErrors.map((error, i) => (
+                    <Alert variant="destructive" key={i}>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>{error.type}</AlertTitle>
+                      <AlertDescription>
+                        {error.line ? `Line ${error.line}: ` : ''}{error.message}
+                      </AlertDescription>
+                    </Alert>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
 
-        {suggestions.length > 0 && (
-          <div className="space-y-2 mt-4">
-            <h3 className="font-medium">Suggestions</h3>
-            {suggestions.map((suggestion, i) => (
-              <Alert key={i}>
-                <Lightbulb className="h-4 w-4" />
-                <AlertTitle>{suggestion.type}</AlertTitle>
-                <AlertDescription>{suggestion.message}</AlertDescription>
-              </Alert>
-            ))}
-          </div>
-        )}
+          {Object.entries(fileSuggestions).map(([file, fileSuggestions]) => (
+            <AccordionItem value={`suggestions-${file}`} key={`suggestions-${file}`}>
+              <AccordionTrigger>
+                Suggestions for {file}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2">
+                  {fileSuggestions.map((suggestion, i) => (
+                    <Alert key={i}>
+                      <Lightbulb className="h-4 w-4" />
+                      <AlertTitle>{suggestion.type}</AlertTitle>
+                      <AlertDescription>{suggestion.message}</AlertDescription>
+                    </Alert>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </ScrollArea>
     </div>
   );
