@@ -1,0 +1,20 @@
+Create an AI-powered agent for an integrated development environment (IDE) that can perform the following tasks:
+
+Automatic Code Access: The agent should be able to access code files in various programming languages (such as Python, Java, JavaScript, etc.) from the IDE. It should be able to understand and process these code files seamlessly.
+Code Execution: The agent should execute the code within the IDE's environment, ensuring compatibility with the programming language and execution context. It must handle runtime environments like local machines, cloud services, or containers as needed.
+Analysis of Execution Output: Upon running the code, the agent should carefully analyze the output of the execution. It should be able to:
+Identify errors or issues (e.g., exceptions, crashes).
+Evaluate the correctness of the output based on predefined criteria or expectations.
+Detect performance bottlenecks, bugs, or areas of inefficiency.
+Automated Debugging and Code Refinement: Based on the analysis, the agent should be capable of:
+Suggesting improvements for bug fixes, performance optimizations, or refactoring opportunities.
+Automatically rewriting sections of the code to address issues or enhance efficiency.
+Ensuring that the rewritten code maintains or improves functionality and adheres to best practices (e.g., readability, modularity, and maintainability).
+Self-Learning and Adaptation: Over time, the agent should learn from previous interactions, gaining the ability to:
+Improve its debugging and rewriting strategies based on past code issues.
+Recognize patterns in code that lead to common bugs or inefficiencies and offer proactive suggestions.
+User Feedback Mechanism: The agent should provide clear and actionable feedback to the developer regarding changes made. This feedback should include:
+Descriptions of the issues found and the reasoning behind proposed fixes.
+Suggestions for further improvements, based on best coding practices.
+A "diff" view that shows the before and after of rewritten code.
+The agent must be intelligent enough to work across different languages and frameworks, providing consistent and reliable results. It should be capable of enhancing productivity by automating the debugging and code optimization process in a seamless and user-friendly manner
