@@ -10,6 +10,7 @@ import type { AnalysisResult, FileInput } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { FileUpload } from "@/components/file-upload";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export default function Home() {
   const [files, setFiles] = useState<FileInput[]>([{ name: 'main.py', content: '' }]);
@@ -69,12 +70,21 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <h1 className="text-4xl font-bold text-foreground">Python Code Analyzer</h1>
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 max-w-screen-2xl items-center">
+          <div className="mr-4 flex">
+            <h1 className="text-xl font-semibold">Python Code Analyzer</h1>
+          </div>
+          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+            <ThemeSwitcher />
+          </div>
+        </div>
+      </header>
 
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Files</h2>
+      <main className="container mx-auto p-6 max-w-screen-2xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-medium">Files</h2>
           <div className="flex gap-2">
             <FileUpload onFilesSelected={handleFilesUploaded} />
             <Button onClick={addFile} variant="outline">
@@ -87,13 +97,13 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-4">
             {files.map((file, index) => (
-              <Card className="p-4" key={index}>
+              <Card className="p-4 shadow-sm" key={index}>
                 <div className="flex justify-between items-center mb-4">
                   <input
                     type="text"
                     value={file.name}
                     onChange={(e) => updateFileName(index, e.target.value)}
-                    className="border rounded px-2 py-1 flex-1 mr-2"
+                    className="border rounded px-2 py-1 flex-1 mr-2 bg-background"
                   />
                   {files.length > 1 && (
                     <Button
@@ -115,20 +125,20 @@ export default function Home() {
             ))}
           </div>
 
-          <Card className="p-4">
+          <Card className="p-4 shadow-sm">
             <AnalysisPanel 
               analysis={analysis} 
               isAnalyzing={analyzeMutation.isPending}
             />
           </Card>
 
-          {analysis?.suggestions.length > 0 && (
-            <Card className="p-4 lg:col-span-2">
+          {analysis?.suggestions?.length > 0 && (
+            <Card className="p-4 lg:col-span-2 shadow-sm">
               <DiffView files={files} analysis={analysis} />
             </Card>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
