@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { AnalysisResult, FileInput } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
+import { FileUpload } from "@/components/file-upload";
 
 export default function Home() {
   const [files, setFiles] = useState<FileInput[]>([{ name: 'main.py', content: '' }]);
@@ -59,6 +60,14 @@ export default function Home() {
     setFiles(newFiles);
   };
 
+  const handleFilesUploaded = (uploadedFiles: FileInput[]) => {
+    setFiles(uploadedFiles);
+    toast({
+      title: "Files Uploaded",
+      description: `Successfully loaded ${uploadedFiles.length} Python file(s).`
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -66,10 +75,13 @@ export default function Home() {
 
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Files</h2>
-          <Button onClick={addFile} variant="outline">
-            <Plus className="mr-2 h-4 w-4" />
-            Add File
-          </Button>
+          <div className="flex gap-2">
+            <FileUpload onFilesSelected={handleFilesUploaded} />
+            <Button onClick={addFile} variant="outline">
+              <Plus className="mr-2 h-4 w-4" />
+              Add New File
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -81,7 +93,7 @@ export default function Home() {
                     type="text"
                     value={file.name}
                     onChange={(e) => updateFileName(index, e.target.value)}
-                    className="border rounded px-2 py-1"
+                    className="border rounded px-2 py-1 flex-1 mr-2"
                   />
                   {files.length > 1 && (
                     <Button
