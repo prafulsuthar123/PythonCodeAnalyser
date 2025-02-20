@@ -109,13 +109,17 @@ export default function Home() {
                   value={file.content}
                   onChange={(content) => updateFile(index, content)}
                   onAnalyze={() => analyzeMutation.mutate(files)}
+                  isAnalyzing={analyzeMutation.isPending}
                 />
               </Card>
             ))}
           </div>
 
           <Card className="p-4">
-            <AnalysisPanel analysis={analysis} />
+            <AnalysisPanel 
+              analysis={analysis} 
+              isAnalyzing={analyzeMutation.isPending}
+            />
           </Card>
 
           {analysis?.suggestions.length > 0 && (

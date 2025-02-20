@@ -1,14 +1,24 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, Lightbulb } from "lucide-react";
+import { AlertCircle, Lightbulb, Loader2 } from "lucide-react";
 import type { AnalysisResult } from "@shared/schema";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface AnalysisPanelProps {
   analysis: AnalysisResult | null;
+  isAnalyzing: boolean;
 }
 
-export function AnalysisPanel({ analysis }: AnalysisPanelProps) {
+export function AnalysisPanel({ analysis, isAnalyzing }: AnalysisPanelProps) {
+  if (isAnalyzing) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-4 text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p>Analyzing your code...</p>
+      </div>
+    );
+  }
+
   if (!analysis) {
     return (
       <div className="h-full flex items-center justify-center text-muted-foreground">

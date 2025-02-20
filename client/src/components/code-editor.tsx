@@ -1,22 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PlayIcon } from "lucide-react";
+import { PlayIcon, Loader2 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 
 interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
   onAnalyze: () => void;
+  isAnalyzing: boolean;
 }
 
-export function CodeEditor({ value, onChange, onAnalyze }: CodeEditorProps) {
+export function CodeEditor({ value, onChange, onAnalyze, isAnalyzing }: CodeEditorProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Code Editor</h2>
-        <Button onClick={onAnalyze}>
-          <PlayIcon className="mr-2 h-4 w-4" />
-          Analyze Code
+        <Button onClick={onAnalyze} disabled={isAnalyzing}>
+          {isAnalyzing ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <PlayIcon className="mr-2 h-4 w-4" />
+          )}
+          {isAnalyzing ? "Analyzing..." : "Analyze Code"}
         </Button>
       </div>
 
@@ -32,6 +37,7 @@ export function CodeEditor({ value, onChange, onAnalyze }: CodeEditorProps) {
             lineNumbers: "on",
             scrollBeyondLastLine: false,
             automaticLayout: true,
+            readOnly: isAnalyzing,
           }}
         />
       </Card>
