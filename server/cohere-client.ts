@@ -1,11 +1,12 @@
 import { CohereClient } from 'cohere-ai';
+import type { AnalysisResult } from '@shared/schema';
 
 // Initialize the Cohere client
 const cohereClient = new CohereClient({ 
   token: process.env.COHERE_API_KEY || ''
 });
 
-export async function analyzeCode(code: string) {
+export async function analyzeCode(code: string): Promise<AnalysisResult> {
   try {
     const response = await cohereClient.generate({
       model: 'command',
@@ -26,16 +27,32 @@ Provide the analysis in JSON format with the following structure:
 }`,
       maxTokens: 500,
       temperature: 0.3,
-      format: 'json',
     });
 
     if (!response.generations?.[0]?.text) {
-      throw new Error('No response from Cohere API');
+      return {
+        errors: [{ type: 'api', message: 'No response from Cohere API' }],
+        suggestions: []
+      };
     }
 
-    return JSON.parse(response.generations[0].text);
+    try {
+      const result = JSON.parse(response.generations[0].text);
+      return {
+        errors: Array.isArray(result.errors) ? result.errors : [],
+        suggestions: Array.isArray(result.suggestions) ? result.suggestions : []
+      };
+    } catch (parseError) {
+      return {
+        errors: [{ type: 'parsing', message: 'Failed to parse analysis response' }],
+        suggestions: []
+      };
+    }
   } catch (error) {
     console.error('Error analyzing code:', error);
-    throw new Error('Failed to analyze code using Cohere');
+    return {
+      errors: [{ type: 'api', message: 'Failed to analyze code using Cohere' }],
+      suggestions: []
+    };
   }
 }

@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { createTwoFilesPatch } from "diff";
-import { parse } from "diff2html";
 import { html } from "diff2html/lib/ui/js/diff2html-ui-base.js";
+import { parse } from "diff2html";
 
 interface DiffViewProps {
   original: string;
@@ -9,6 +9,10 @@ interface DiffViewProps {
 }
 
 export function DiffView({ original, improved }: DiffViewProps) {
+  if (!improved || original === improved) {
+    return null;
+  }
+
   const diff = createTwoFilesPatch("original.py", "improved.py", original, improved);
   const diffJson = parse(diff);
   const diffHtml = html(diffJson, {
