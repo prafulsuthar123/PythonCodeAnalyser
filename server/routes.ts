@@ -20,7 +20,8 @@ export async function registerRoutes(app: Express) {
     try {
       let combinedAnalysis = {
         errors: [],
-        suggestions: []
+        suggestions: [],
+        output: {} as Record<string, string>
       };
 
       // Create temporary directory for files
@@ -32,7 +33,9 @@ export async function registerRoutes(app: Express) {
         await writeFile(tempFilePath, file.content);
 
         try {
-          const { stderr } = await execAsync(`python3 "${tempFilePath}"`);
+          const { stdout, stderr } = await execAsync(`python3 "${tempFilePath}"`);
+          combinedAnalysis.output[file.name] = stdout || stderr;
+
           if (stderr) {
             combinedAnalysis.errors.push({
               type: "runtime",
@@ -48,6 +51,7 @@ export async function registerRoutes(app: Express) {
             file: file.name,
             line: 1
           });
+          combinedAnalysis.output[file.name] = execError.message;
         }
 
         // Get AI analysis for each file
@@ -66,7 +70,8 @@ export async function registerRoutes(app: Express) {
             acc[suggestion.file] = suggestion.code;
           }
           return acc;
-        }, {})
+        }, {} as Record<string, string>),
+        output: combinedAnalysis.output
       });
 
       res.json(combinedAnalysis);
@@ -74,7 +79,8 @@ export async function registerRoutes(app: Express) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       res.status(400).json({
         errors: [{ type: "execution", message: errorMessage }],
-        suggestions: []
+        suggestions: [],
+        output: {}
       });
     }
   });

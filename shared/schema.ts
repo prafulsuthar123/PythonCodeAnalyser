@@ -8,6 +8,7 @@ export const codeAnalysis = pgTable("code_analysis", {
   analysis: json("analysis").notNull(),
   suggestions: json("suggestions").notNull(),
   improvedCode: json("improved_code"), // Map of filenames to improved code
+  output: json("output").notNull(), // Program output by file
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -16,6 +17,7 @@ export const insertCodeAnalysisSchema = createInsertSchema(codeAnalysis).pick({
   analysis: true,
   suggestions: true,
   improvedCode: true,
+  output: true,
 });
 
 export type InsertCodeAnalysis = z.infer<typeof insertCodeAnalysisSchema>;
@@ -39,6 +41,7 @@ export const analysisResultSchema = z.object({
     file: z.string(),
     code: z.string().optional(),
   })),
+  output: z.record(z.string(), z.string()), // File name -> program output
 });
 
 export type AnalysisResult = z.infer<typeof analysisResultSchema>;

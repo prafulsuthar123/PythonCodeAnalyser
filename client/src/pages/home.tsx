@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { FileUpload } from "@/components/file-upload";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { OutputPanel } from "@/components/output-panel";
 
 export default function Home() {
   const [files, setFiles] = useState<FileInput[]>([{ name: 'main.py', content: '' }]);
@@ -132,6 +133,15 @@ export default function Home() {
             />
           </Card>
 
+          {analysis && (
+            <Card className="p-4 lg:col-span-2 shadow-sm">
+              <OutputPanel 
+                files={files} 
+                analysis={analysis}
+                isAnalyzing={analyzeMutation.isPending}
+              />
+            </Card>
+          )}
           {analysis?.suggestions?.length > 0 && (
             <Card className="p-4 lg:col-span-2 shadow-sm">
               <DiffView files={files} analysis={analysis} />
