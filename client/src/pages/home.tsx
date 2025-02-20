@@ -72,45 +72,50 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Responsive Header */}
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 max-w-screen-2xl items-center">
-          <div className="mr-4 flex">
-            <h1 className="text-xl font-semibold">Python Code Analyzer</h1>
+        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg md:text-xl font-semibold">Python Code Analyzer</h1>
           </div>
-          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <div className="flex items-center gap-4">
             <ThemeSwitcher />
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto p-6 max-w-screen-2xl">
-        <div className="flex justify-between items-center mb-6">
+      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8 max-w-7xl">
+        {/* File Controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-lg font-medium">Files</h2>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <FileUpload onFilesSelected={handleFilesUploaded} />
-            <Button onClick={addFile} variant="outline">
+            <Button onClick={addFile} variant="outline" className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Add New File
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Code Editor Section */}
           <div className="space-y-4">
             {files.map((file, index) => (
               <Card className="p-4 shadow-sm" key={index}>
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:items-center mb-4">
                   <input
                     type="text"
                     value={file.name}
                     onChange={(e) => updateFileName(index, e.target.value)}
-                    className="border rounded px-2 py-1 flex-1 mr-2 bg-background"
+                    className="border rounded px-2 py-1 flex-1 bg-background w-full sm:w-auto"
                   />
                   {files.length > 1 && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFile(index)}
+                      className="sm:ml-2"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -126,15 +131,17 @@ export default function Home() {
             ))}
           </div>
 
-          <Card className="p-4 shadow-sm">
+          {/* Analysis Panel */}
+          <Card className="p-4 shadow-sm h-fit">
             <AnalysisPanel 
               analysis={analysis} 
               isAnalyzing={analyzeMutation.isPending}
             />
           </Card>
 
+          {/* Output Panel - Full Width */}
           {analysis && (
-            <Card className="p-4 lg:col-span-2 shadow-sm">
+            <Card className="p-4 xl:col-span-2 shadow-sm">
               <OutputPanel 
                 files={files} 
                 analysis={analysis}
@@ -142,8 +149,10 @@ export default function Home() {
               />
             </Card>
           )}
+
+          {/* Diff View - Full Width */}
           {analysis?.suggestions?.length > 0 && (
-            <Card className="p-4 lg:col-span-2 shadow-sm">
+            <Card className="p-4 xl:col-span-2 shadow-sm">
               <DiffView files={files} analysis={analysis} />
             </Card>
           )}

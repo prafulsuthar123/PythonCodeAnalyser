@@ -29,7 +29,7 @@ export function FileUpload({ onFilesSelected }: FileUploadProps) {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center">
       <input
         type="file"
         id="file-upload"
@@ -41,6 +41,7 @@ export function FileUpload({ onFilesSelected }: FileUploadProps) {
       <Button
         variant="outline"
         onClick={() => document.getElementById('file-upload')?.click()}
+        className="w-full sm:w-auto whitespace-nowrap"
       >
         <Upload className="mr-2 h-4 w-4" />
         Upload Python Files
