@@ -34,14 +34,24 @@ export const analysisResultSchema = z.object({
     message: z.string(),
     file: z.string(),
     line: z.number().optional(),
+    column: z.number().optional(),
+    severity: z.enum(['error', 'warning', 'info']).optional()
   })),
   suggestions: z.array(z.object({
     type: z.string(),
     message: z.string(),
     file: z.string(),
     code: z.string().optional(),
+    line: z.number().optional(),
+    performance_impact: z.string().optional(),
+    confidence: z.number().optional()
   })),
-  output: z.record(z.string(), z.string()), // File name -> program output
+  metrics: z.object({
+    execution_time: z.number(),
+    memory_usage: z.number(),
+    complexity: z.number()
+  }).optional(),
+  output: z.record(z.string(), z.string()).default({})
 });
 
 export type AnalysisResult = z.infer<typeof analysisResultSchema>;

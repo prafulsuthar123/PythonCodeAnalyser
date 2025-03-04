@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CodeEditor } from "@/components/code-editor";
@@ -13,8 +14,21 @@ import { FileUpload } from "@/components/file-upload";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { OutputPanel } from "@/components/output-panel";
 
+const DEFAULT_CODE = `def fibonacci(n):
+    """Calculate the nth Fibonacci number."""
+    if n <= 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        return fibonacci(n - 1) + fibonacci(n - 2)
+
+# Example usage
+result = fibonacci(10)
+print(f"The 10th Fibonacci number is: {result}")`;
+
 export default function Home() {
-  const [files, setFiles] = useState<FileInput[]>([{ name: 'main.py', content: '' }]);
+  const [files, setFiles] = useState<FileInput[]>([{ name: 'main.py', content: DEFAULT_CODE }]);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
 

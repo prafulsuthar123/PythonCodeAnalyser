@@ -1,90 +1,92 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { exec } from "child_process";
-import { promisify } from "util";
-import { analysisResultSchema, fileSchema } from "@shared/schema";
+import { fileSchema } from "@shared/schema";
+import { codeAnalysisSchema } from "@shared/agent-schema";
 import { z } from "zod";
-import { analyzeCode } from "./cohere-client";
+import { IDEAgent } from "./services/agent";
 import { tmpdir } from "os";
 import { writeFile } from "fs/promises";
 import { join } from "path";
 
-const execAsync = promisify(exec);
+const agent = new IDEAgent();
 
 export async function registerRoutes(app: Express) {
   app.post("/api/analyze", async (req, res) => {
-    const body = req.body;
-    const filesData = z.object({ files: z.array(fileSchema) }).parse(body);
-
     try {
+      const body = req.body;
+      const filesData = z.object({ files: z.array(fileSchema) }).parse(body);
+      
       let combinedAnalysis = {
         errors: [],
         suggestions: [],
-        output: {} as Record<string, string>
+        metrics: {
+          execution_time: 0,
+          memory_usage: 0,
+          complexity: 0
+        },
+        output: {}
       };
 
-      // Create temporary directory for files
-      const tempDir = tmpdir();
-
-      // Write files and execute them
+      // Analyze each file
       for (const file of filesData.files) {
-        const tempFilePath = join(tempDir, file.name);
-        await writeFile(tempFilePath, file.content);
+        const fileAnalysis = await agent.analyzeCode({
+          code: file.content,
+          language: file.name.endsWith('.py') ? 'python' :
+                   file.name.endsWith('.js') ? 'javascript' :
+                   file.name.endsWith('.ts') ? 'typescript' :
+                   file.name.endsWith('.java') ? 'java' :
+                   file.name.endsWith('.cpp') ? 'cpp' :
+                   file.name.endsWith('.go') ? 'go' :
+                   file.name.endsWith('.rs') ? 'rust' : 'python',
+          filename: file.name
+        });
 
-        try {
-          const { stdout, stderr } = await execAsync(`python3 "${tempFilePath}"`);
-          combinedAnalysis.output[file.name] = stdout || stderr;
-
-          if (stderr) {
-            combinedAnalysis.errors.push({
-              type: "runtime",
-              message: stderr,
-              file: file.name,
-              line: 1
-            });
-          }
-        } catch (execError: any) {
-          combinedAnalysis.errors.push({
-            type: "runtime",
-            message: execError.message,
-            file: file.name,
-            line: 1
-          });
-          combinedAnalysis.output[file.name] = execError.message;
-        }
-
-        // Get AI analysis for each file
-        const fileAnalysis = await analyzeCode(file.content, file.name);
         combinedAnalysis.errors.push(...fileAnalysis.errors);
         combinedAnalysis.suggestions.push(...fileAnalysis.suggestions);
+        if (fileAnalysis.metrics) {
+          combinedAnalysis.metrics.execution_time += fileAnalysis.metrics.execution_time || 0;
+          combinedAnalysis.metrics.memory_usage += fileAnalysis.metrics.memory_usage || 0;
+          combinedAnalysis.metrics.complexity += fileAnalysis.metrics.complexity || 0;
+        }
+        if (fileAnalysis.output) {
+          combinedAnalysis.output[file.name] = fileAnalysis.output;
+        }
       }
-
-      // Save analysis
-      const result = await storage.saveAnalysis({
-        files: filesData.files,
-        analysis: combinedAnalysis,
-        suggestions: combinedAnalysis.suggestions,
-        improvedCode: combinedAnalysis.suggestions.reduce((acc, suggestion) => {
-          if (suggestion.file && suggestion.code) {
-            acc[suggestion.file] = suggestion.code;
-          }
-          return acc;
-        }, {} as Record<string, string>),
-        output: combinedAnalysis.output
-      });
 
       res.json(combinedAnalysis);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error('Error in /api/analyze:', error);
       res.status(400).json({
-        errors: [{ type: "execution", message: errorMessage }],
-        suggestions: [],
-        output: {}
+        errors: [{
+          type: 'request_error',
+          message: error instanceof Error ? error.message : 'Invalid request',
+          file: 'unknown'
+        }],
+        suggestions: []
       });
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  app.post("/api/files", async (req, res) => {
+    const body = req.body;
+    const filesData = z.object({ files: z.array(fileSchema) }).parse(body);
+    
+    try {
+      const savedFiles = await Promise.all(
+        filesData.files.map(async (file) => {
+          const key = await storage.put(file.name, file.content);
+          return { name: file.name, key };
+        })
+      );
+      
+      res.json({ files: savedFiles });
+    } catch (error) {
+      console.error('Error saving files:', error);
+      res.status(500).json({ error: 'Failed to save files' });
+    }
+  });
+
+  const server = createServer(app);
+  return server;
 }
